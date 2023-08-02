@@ -2,6 +2,8 @@ name: Serverless App CI/CD Pipeline
 
 on:
     workflow_dispatch:
+env:
+    BUCKET_NAME: "github-bucket-189602"
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
@@ -13,6 +15,7 @@ jobs:
               uses: aws-actions/configure-aws-credentials@v2
               with:
                 role-to-assume: arn:aws:iam::017432918922:role/Github-deployment-role
+                role-session-name: samplerolesession
                 aws-region: eu-west-1
 
             - name: Run Checkov
@@ -21,6 +24,14 @@ jobs:
                 directory: "/"
                 output: "junitxml"
                 junitxml: checkov_results.xml
+
+
+            - name: Publish Checkov results
+              uses: mikepenz/action-junit-report@v2
+              if: always()
+              with:
+                report_paths: 'checkov_results.xml'
+              
 
             - name: Run Semgrep
               uses: returntocorp/semgrep-action@v1
